@@ -18,6 +18,21 @@ namespace PanicBuying
             }
         }
 
+        bool TryGetItem(ref ItemData InData)
+        {
+            for (int i = _inventory.Items.Length - 1; i > 0; --i)
+            {
+                ref ItemData ExistingItem = ref _inventory.Items[i];
+
+                if (ExistingItem.Accumulate(ref InData) == false)
+                {
+                    continue;
+                }
+            }
+
+            return InData.Count <= 0;
+        }
+
 
         [ServerRpc]
         void RequestInventory_ServerRpc(ServerRpcParams serverRpcParams = new())
@@ -37,7 +52,7 @@ namespace PanicBuying
         }
 
 
-        protected InventoryStruct _inventory;
+        protected InventoryStruct _inventory = new();
     }
 
 
@@ -45,9 +60,9 @@ namespace PanicBuying
     {
         public InventoryStruct(int SlotNumber = 5)
         {
-            Items = new(SlotNumber, Allocator.Persistent);
+            Items = new ItemData[SlotNumber];
         }
 
-        NativeArray<ItemData> Items;
+        public ItemData[] Items;
     }
 }
