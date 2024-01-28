@@ -17,6 +17,13 @@ namespace Unity.Multiplayer.Samples.BossRoom
         [SerializeField] private Image hpGauge;
         [SerializeField] private Image staminaGauge;
 
+        public static UIManager Instance
+        {
+            get
+            {
+                return GameObject.Find("UIManager").GetComponent<UIManager>();
+            }
+        }
 
         public void Update()
         {

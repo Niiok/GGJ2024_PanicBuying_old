@@ -10,6 +10,7 @@ using UnityEngine.UIElements;
 using Unity.PanicBuying.Character;
 using DebugExtentionMethods;
 using PanicBuying;
+using Unity.Multiplayer.Samples.BossRoom;
 
 namespace Unity.PanicBuying.Character
 {
@@ -45,6 +46,8 @@ namespace Unity.PanicBuying.Character
         public float staminaChangeRate;
         public float staminaCooldown;
         public float curStamina;
+        public float currentHP;
+        public float maxHP;
 
         private bool runnable = true;
         bool isRun = false;
@@ -175,15 +178,22 @@ namespace Unity.PanicBuying.Character
                 GetInput();
                 MovePlayer();
                 Animate();
+                UpdateUI();
             }
         }
 
 
+        private void UpdateUI()
+        {
+            UIManager.Instance.SetHPRate(currentHP/maxHP);
+            UIManager.Instance.SetStaminaRate(curStamina/maxStamina);
+            UIManager.Instance.SetWeight(weight);
+        }
 
         private void GetInput()
         {
-            horizontalInput = Input.GetAxisRaw("Horizontal");
-            verticalInput = Input.GetAxisRaw("Vertical");
+            horizontalInput = Input.GetAxis("Horizontal");
+            verticalInput = Input.GetAxis("Vertical");
 
             if (runnable)
             {
@@ -198,8 +208,8 @@ namespace Unity.PanicBuying.Character
                 }
             }
 
-            isGrounded = Physics.Raycast(transform.position, Vector3.down, playerHeight);
-
+            isGrounded = Physics.Raycast(transform.position + Vector3.up * playerHeight, Vector3.down, playerHeight*2);
+            
             if (isGrounded)
             {
                 if (isSneak)
@@ -211,12 +221,12 @@ namespace Unity.PanicBuying.Character
                     animationState = AnimationState.Idle;
                 }
             }
-            else
+            else if(animationState==AnimationState.Jump)
             {
                 animationState = AnimationState.Jump;
             }
 
-            Debug.DrawLine(transform.position, transform.position + Vector3.down * playerHeight, Color.red);
+            Debug.DrawLine(transform.position + Vector3.up * playerHeight, transform.position + Vector3.down * playerHeight * 2, Color.red);
 
             if (isGrounded && !isRun && Input.GetKeyDown(KeyCode.C))
             {
@@ -258,7 +268,8 @@ namespace Unity.PanicBuying.Character
         {
             networkAnimator.Animator.SetInteger("DirectionX", (int)horizontalInput);
             networkAnimator.Animator.SetInteger("DirectionZ", (int)verticalInput);
-            var direction = Vector3.Normalize(orientation.forward * verticalInput + orientation.right * horizontalInput);
+            var direction = Vector3.Normalize(body.forward * verticalInput + body.right * horizontalInput);
+            Debug.Log(direction);
             if (direction.magnitude > 0.0f)
             {
                 float moveSpeed;
